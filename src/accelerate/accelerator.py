@@ -487,7 +487,11 @@ class Accelerator:
             )
 
         # TODO: S1ro - this is probably gonna be a problem with other fp8 backends too
-        if self.fp8_backend == "AO" and self.state.fsdp_plugin.cpu_ram_efficient_loading:
+        if (
+            self.fp8_backend == "AO" and
+            hasattr(self.state, "fsdp_plugin") and
+            self.state.fsdp_plugin.cpu_ram_efficient_loading
+        ):
             raise ValueError(
                 "torchao with FSDP2 and cpu_ram_efficient_loading is not supported, setting `cpu_ram_efficient_loading` to False will fix the issue and work as intended."
             )
