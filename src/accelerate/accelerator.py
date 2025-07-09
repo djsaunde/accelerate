@@ -1341,6 +1341,10 @@ class Accelerator:
         ... )
         ```
         """
+        print("in prepare")
+        
+        # import ipdb; ipdb.set_trace()
+
         if device_placement is None:
             device_placement = [None for _ in args]
         elif self.distributed_type in (DistributedType.DEEPSPEED, DistributedType.MEGATRON_LM):
@@ -1422,6 +1426,7 @@ class Accelerator:
                     "You are using lower version of PyTorch(< 2.7.0) with ipex acceleration on Intel CPU or XPU, Intel has upstreamed most of the optimizations into stock PyTorch from 2.7.0, we enourage you to install the latest stock PyTorch and enjoy the out-of-experience on Intel CPU/XPU."
                 )
                 args = self._prepare_ipex(*args)
+
         if self.fp8_backend == "TE":
             args = self._prepare_te(*args)
         elif self.fp8_backend == "AO":
@@ -1820,6 +1825,8 @@ class Accelerator:
         return model
 
     def _prepare_ao(self, *args):
+        print("in _prepare_ao")
+
         if not is_torchao_available():
             raise ImportError(
                 "`torchao` was not found on your system or is too old of a version. Please ensure that `torchao >= 0.6.1` is installed"
@@ -1829,12 +1836,20 @@ class Accelerator:
             models = [x for x in args if isinstance(x, torch.nn.Module)]
             optimizers = [x for x in args if isinstance(x, torch.optim.Optimizer)]
         for arg in args:
+            print("here2")
+            print(arg)
             if isinstance(arg, torch.nn.Module):
+                print("before")
+                print(arg)
+                print()
                 convert_model_to_fp8_ao(
                     arg,
                     config=self.ao_recipe_handler.config,
                     module_filter_func=self.ao_recipe_handler.module_filter_func,
                 )
+                print("after")
+                print(arg)
+                print()
 
         # Invariant: with FSDP2, optimizer is always passed to `prepare()` together with model
         # We only precompute scales if float8 all gather is enabled, possibly can add a flag for this later
